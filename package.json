@@ -1,0 +1,109 @@
+{
+	"name": "@superbuilders/validate",
+	"version": "0.1.1",
+	"description": "JSON Schema Draft 7 validation primitives for Superbuilders applications",
+	"module": "dist/validate.js",
+	"main": "dist/validate.js",
+	"types": "dist/validate.d.ts",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/validate.d.ts",
+			"import": "./dist/validate.js"
+		},
+		"./ajv-instance": {
+			"types": "./dist/ajv-instance.d.ts",
+			"import": "./dist/ajv-instance.js"
+		},
+		"./build-validator": {
+			"types": "./dist/build-validator.d.ts",
+			"import": "./dist/build-validator.js"
+		},
+		"./compile": {
+			"types": "./dist/compile.d.ts",
+			"import": "./dist/compile.js"
+		},
+		"./draft07": {
+			"types": "./dist/draft07.d.ts",
+			"import": "./dist/draft07.js"
+		},
+		"./errors": {
+			"types": "./dist/errors.d.ts",
+			"import": "./dist/errors.js"
+		},
+		"./issue-format": {
+			"types": "./dist/issue-format.d.ts",
+			"import": "./dist/issue-format.js"
+		},
+		"./schemas/house-guards": {
+			"types": "./dist/schemas/house-guards.d.ts",
+			"import": "./dist/schemas/house-guards.js"
+		},
+		"./schemas/infer-draft07": {
+			"types": "./dist/schemas/infer-draft07.d.ts",
+			"import": "./dist/schemas/infer-draft07.js"
+		},
+		"./schemas/regex-patterns": {
+			"types": "./dist/schemas/regex-patterns.d.ts",
+			"import": "./dist/schemas/regex-patterns.js"
+		},
+		"./schemas/schema-keywords": {
+			"types": "./dist/schemas/schema-keywords.d.ts",
+			"import": "./dist/schemas/schema-keywords.js"
+		},
+		"./types/json-schema": {
+			"types": "./dist/types/json-schema.d.ts",
+			"import": "./dist/types/json-schema.js"
+		},
+		"./types/validation-result": {
+			"types": "./dist/types/validation-result.d.ts",
+			"import": "./dist/types/validation-result.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "bun run build.ts",
+		"typecheck": "tsgo --noEmit",
+		"prepublishOnly": "bun run build"
+	},
+	"keywords": [
+		"json-schema",
+		"draft-07",
+		"ajv",
+		"validation",
+		"standard-schema",
+		"standard-json-schema",
+		"typescript",
+		"superbuilders"
+	],
+	"author": "Bjorn Pagen",
+	"license": "0BSD",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/superbuilders/validate"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"dependencies": {
+		"@standard-schema/spec": "^1.1.0",
+		"@superbuilders/errors": "^3.0.2",
+		"ajv": "^8.20.0",
+		"arkregex": "^0.0.5",
+		"json-schema-to-ts": "^3.1.1"
+	},
+	"devDependencies": {
+		"@types/bun": "^1.3.14",
+		"@typescript/native-preview": "^7.0.0-dev.20260612.1",
+		"resolve-tspaths": "^0.8.23",
+		"typescript": "^6.0.3"
+	},
+	"peerDependencies": {
+		"typescript": "^6.0.3"
+	},
+	"engines": {
+		"node": ">=18"
+	}
+}

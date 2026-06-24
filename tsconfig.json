@@ -1,0 +1,32 @@
+{
+	"compilerOptions": {
+		"types": ["bun", "node"],
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"paths": {
+			"@superbuilders/validate": ["./src/validate.ts"],
+			"@superbuilders/validate/*": ["./src/*"]
+		},
+		"lib": ["ESNext", "DOM"],
+		"target": "esnext",
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"moduleDetection": "force",
+		"isolatedModules": true,
+		"verbatimModuleSyntax": true,
+		"strict": true,
+		"noEmit": true,
+		"declaration": true,
+		"declarationMap": true,
+		"resolveJsonModule": true,
+		"resolvePackageJsonImports": true,
+		"resolvePackageJsonExports": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true
+	},
+	"include": ["src"],
+	"exclude": ["dist", "node_modules", "src/**/*.test.ts"]
+}
