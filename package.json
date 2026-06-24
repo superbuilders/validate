@@ -1,6 +1,6 @@
 {
 	"name": "@superbuilders/validate",
-	"version": "0.1.1",
+	"version": "0.2.0",
 	"description": "JSON Schema Draft 7 validation primitives for Superbuilders applications",
 	"module": "dist/validate.js",
 	"main": "dist/validate.js",
