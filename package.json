@@ -1,6 +1,6 @@
 {
 	"name": "@superbuilders/validate",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "JSON Schema Draft 7 validation primitives for Superbuilders applications",
 	"module": "dist/validate.js",
 	"main": "dist/validate.js",
@@ -10,54 +10,6 @@
 		".": {
 			"types": "./dist/validate.d.ts",
 			"import": "./dist/validate.js"
-		},
-		"./ajv-instance": {
-			"types": "./dist/ajv-instance.d.ts",
-			"import": "./dist/ajv-instance.js"
-		},
-		"./build-validator": {
-			"types": "./dist/build-validator.d.ts",
-			"import": "./dist/build-validator.js"
-		},
-		"./compile": {
-			"types": "./dist/compile.d.ts",
-			"import": "./dist/compile.js"
-		},
-		"./draft07": {
-			"types": "./dist/draft07.d.ts",
-			"import": "./dist/draft07.js"
-		},
-		"./errors": {
-			"types": "./dist/errors.d.ts",
-			"import": "./dist/errors.js"
-		},
-		"./issue-format": {
-			"types": "./dist/issue-format.d.ts",
-			"import": "./dist/issue-format.js"
-		},
-		"./schemas/house-guards": {
-			"types": "./dist/schemas/house-guards.d.ts",
-			"import": "./dist/schemas/house-guards.js"
-		},
-		"./schemas/infer-draft07": {
-			"types": "./dist/schemas/infer-draft07.d.ts",
-			"import": "./dist/schemas/infer-draft07.js"
-		},
-		"./schemas/regex-patterns": {
-			"types": "./dist/schemas/regex-patterns.d.ts",
-			"import": "./dist/schemas/regex-patterns.js"
-		},
-		"./schemas/schema-keywords": {
-			"types": "./dist/schemas/schema-keywords.d.ts",
-			"import": "./dist/schemas/schema-keywords.js"
-		},
-		"./types/json-schema": {
-			"types": "./dist/types/json-schema.d.ts",
-			"import": "./dist/types/json-schema.js"
-		},
-		"./types/validation-result": {
-			"types": "./dist/types/validation-result.d.ts",
-			"import": "./dist/types/validation-result.js"
 		}
 	},
 	"files": [
