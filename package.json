@@ -1,7 +1,7 @@
 {
 	"name": "@superbuilders/validate",
-	"version": "0.3.0",
-	"description": "JSON Schema Draft 7 validation primitives for Superbuilders applications",
+	"version": "1.0.0",
+	"description": "Max-strict JSON Schema draft-07 validation: one compile() entry, a runtime house-law walker, and recursive type inference over ajv",
 	"module": "dist/validate.js",
 	"main": "dist/validate.js",
 	"types": "dist/validate.d.ts",
@@ -19,7 +19,8 @@
 	"scripts": {
 		"build": "rm -rf dist && tsgo -p tsconfig.build.json",
 		"typecheck": "tsgo --noEmit",
-		"prepublishOnly": "pnpm run build"
+		"prepublishOnly": "pnpm run build",
+		"test": "pnpm run build && node --test src/validate.test.ts"
 	},
 	"keywords": [
 		"json-schema",
@@ -42,7 +43,7 @@
 	},
 	"dependencies": {
 		"@standard-schema/spec": "^1.1.0",
-		"@superbuilders/errors": "^3.0.2",
+		"@superbuilders/errors": "^4.0.0",
 		"ajv": "^8.20.0",
 		"arkregex": "^0.0.5",
 		"json-schema-to-ts": "^3.1.1"

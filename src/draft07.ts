@@ -1,10 +1,6 @@
 import type { StandardJSONSchemaV1 } from "@standard-schema/spec"
 
-import {
-	DRAFT_07_SCHEMA_URL,
-	ErrUnsupportedSchemaDialect,
-	ErrUnsupportedSchemaTarget
-} from "#errors.ts"
+import { DRAFT_07_SCHEMA_URL, ErrUnsupportedSchemaDialect, ErrUnsupportedSchemaTarget } from "#errors.ts"
 import type { JsonSchema } from "#types/json-schema.ts"
 
 function assertDraft07SchemaDialect(schemaSource: JsonSchema): void {

@@ -1,175 +1,139 @@
 # @superbuilders/validate
 
-JSON Schema Draft 7 validation primitives for Superbuilders applications.
-
-This package is a small, typed wrapper around AJV. It gives one compiled schema artifact that works as:
-
-- an AJV-backed parser
-- a Standard Schema validator
-- a Standard JSON Schema provider
-- an AI SDK structured-output schema input
-
-It deliberately does not transform data. It validates unknown input and returns the same value with a narrowed TypeScript type when validation succeeds.
-
-## Installation
-
-```bash
-bun add @superbuilders/validate
-```
-
-```bash
-npm install @superbuilders/validate
-```
-
-## Basic Usage
+Max-strict JSON Schema draft-07 validation with one entry point: `compile()`. A schema goes in; a `Validator<T>` comes out that is simultaneously an ajv-backed parser, a [Standard Schema](https://standardschema.dev) validator, and a Standard JSON Schema provider — with `T` inferred from the schema literal itself, recursion included.
 
 ```typescript
 import * as validate from "@superbuilders/validate"
 
-const UserSchema = validate.compile({
-	type: "object",
-	additionalProperties: false,
-	required: ["id", "email"],
-	properties: {
-		id: { type: "string", minLength: 1 },
-		email: { type: "string", minLength: 1 }
-	}
-} as const)
-
-type User = validate.Infer<typeof UserSchema>
-
-const result = UserSchema.parse(input)
-if (!result.success) {
-	throw result.error
-}
-
-const user: User = result.data
-```
-
-## API
-
-### `validate.compile(schema)`
-
-Compiles a JSON Schema Draft 7 schema with AJV and returns a `Validator<T>`.
-
-```typescript
-const Schema = validate.compile({ type: "string" } as const)
-```
-
-Do not pass explicit output generics. The output type is inferred from the schema when `json-schema-to-ts` can represent it. String `pattern` schemas are additionally refined with `arkregex` when the pattern is a literal.
-
-```typescript
-const SlugSchema = validate.compile({
-	type: "string",
-	pattern: "^post_[0-9]+$"
-} as const)
-
-type Slug = validate.Infer<typeof SlugSchema>
-// `post_${number}`
-```
-
-JSON Schema patterns are not implicitly anchored. Use `^` and `$` when you need full-string validation.
-
-### `Schema.parse(value)`
-
-Validates an unknown value.
-
-```typescript
-const result = Schema.parse(value)
-if (result.success) {
-	result.data
-} else {
-	result.error
-	result.issues
-}
-```
-
-### `validate.Infer<typeof Schema>`
-
-Extracts the inferred output type from a compiled validator.
-
-```typescript
-type Output = validate.Infer<typeof Schema>
-```
-
-### Standard Schema
-
-Compiled validators implement `StandardSchemaV1`.
-
-```typescript
-Schema["~standard"].validate(value)
-```
-
-### Standard JSON Schema
-
-Compiled validators implement `StandardJSONSchemaV1`.
-
-Only `target: "draft-07"` is supported.
-
-```typescript
-const jsonSchema = Schema["~standard"].jsonSchema.input({ target: "draft-07" })
-```
-
-Unsupported targets throw.
-
-## Strictness
-
-AJV is configured with explicit strict options:
-
-- `strict: true`
-- `strictSchema: true`
-- `strictNumbers: true`
-- `strictTypes: true`
-- `strictTuples: true`
-- `strictRequired: true`
-- `allowUnionTypes: false`
-- `allowMatchingProperties: false`
-- `validateFormats: true`
-- `coerceTypes: false`
-- `useDefaults: false`
-- `removeAdditional: false`
-
-Non-null `type` unions are rejected by AJV strict mode:
-
-```typescript
-// Avoid this
-{ type: ["string", "number"] }
-
-// Prefer this
-{ anyOf: [{ type: "string" }, { type: "number" }] }
-```
-
-Nullable schemas are permitted:
-
-```typescript
-{ type: ["string", "null"] }
-```
-
-## Additional Properties
-
-Always make `additionalProperties` explicit on object schemas.
-
-Prefer closed objects:
-
-```typescript
-{
+const User = validate.compile({
 	type: "object",
 	additionalProperties: false,
 	required: ["id"],
-	properties: { id: { type: "string" } }
+	properties: {
+		id: { type: "string" },
+		age: { type: "number" }
+	}
+})
+
+const result = User.parse(input)
+if (!result.success) {
+	throw errors.wrap(result.error, "user payload")
+}
+result.data // { id: string; age?: number } — inferred, not annotated
+```
+
+## Install
+
+```
+pnpm add @superbuilders/validate
+```
+
+ESM only. TypeScript ^6 is a peer dependency; ajv, json-schema-to-ts, and arkregex are real dependencies and implementation details — none of them leak through the API.
+
+## The doctrine
+
+This library exists to make one opinionated dialect of JSON Schema the only expressible one. Three layers enforce the same law:
+
+1. **Type-level guards** — instant editor feedback. An unlawful literal schema does not typecheck, and the error poisons the exact offending key.
+2. **A runtime walker** — the enforcement layer of record. Every schema, statically typed or dynamically assembled, is walked before ajv sees it. The walker enforces everything the types express plus what they can't (key order, discriminated-union shape). Violations throw a wrap of `ErrSchemaCompilation` naming the rule and the JSON-pointer path.
+3. **Max-strict ajv** — the validation authority. All strict flags on, no coercion, no defaults, no formats, unicode patterns, and no schema registry (every compile is anonymous and repeatable).
+
+Because the law lives at runtime, the type layer is pure developer experience — there is nothing to bypass and no escape hatch to abuse. There is deliberately no `buildValidator<T>()`, no exported ajv instance, and no way to hand the compiler a type it didn't earn.
+
+## The law
+
+Object schemas declare intent explicitly, in canonical key order:
+
+```
+type < additionalProperties < required < properties
+```
+
+- `additionalProperties` is **mandatory** on object schemas and **boolean only** — `false` unless the boundary is deliberately open. (The schema form corrupts json-schema-to-ts inference; implicit openness hides the decision.)
+- `required` may list only keys declared in `properties`, without duplicates.
+- Typed keywords require their type: `pattern`/`minLength` ⇒ `type: "string"`, `minimum` ⇒ numeric, `items` ⇒ `"array"`, `properties` ⇒ `"object"`, and `const`/`enum` require an explicit `type`.
+- `oneOf` is reserved for **discriminated unions**: every branch a closed object schema sharing one const-tagged discriminator, first in both `required` and `properties`. Use `anyOf` for other unions.
+- **Banned outright**: `$id`, `$defs` (use `definitions`), `nullable`, `format` (use `pattern`), `default`, `patternProperties`, `additionalItems`, `dependencies`, tuple `items`, inline `type` arrays, unknown keywords, non-root `$schema`/`definitions`.
+
+## Recursion
+
+ajv compiles recursive schemas natively; json-schema-to-ts cannot infer them (its eager `$ref` expansion dies with ts2589, and an unresolvable ref silently infers `never`). This library reconciles the two with its own type-level ref inliner: every `$ref` is expanded with a cycle-cutting stack, and a ref that re-enters its own expansion becomes `unknown`.
+
+```typescript
+const Tree = validate.compile({
+	type: "object",
+	additionalProperties: false,
+	required: ["value", "children"],
+	properties: {
+		value: { type: "number" },
+		children: { type: "array", items: { $ref: "#/definitions/node" } }
+	},
+	definitions: {
+		node: {
+			type: "object",
+			additionalProperties: false,
+			required: ["value", "children"],
+			properties: {
+				value: { type: "number" },
+				children: { type: "array", items: { $ref: "#/definitions/node" } }
+			}
+		}
+	}
+})
+// Infer<typeof Tree> = { value: number; children: { value: number; children: unknown[] }[] }
+// Runtime validation is fully recursive to any depth.
+```
+
+The rules: `$ref` is always `"#/definitions/<name>"`, the name must resolve (a bad path is a loud compile-time and runtime error, never a silent `never`), and a `$ref` node carries no sibling keywords. The root may be a ref itself — `{ definitions: {...}, $ref: "#/definitions/entry" }` — the classic recursive-document idiom. Whole-document `"#"` refs are banned.
+
+## Patterns
+
+`pattern` strings are validated syntactically at the type level (via arkregex, in the `u` dialect ajv compiles with) and refined into template-literal types:
+
+```typescript
+const Urn = validate.compile({ type: "string", pattern: "^urn:x:.+$" })
+// Infer<typeof Urn> = `urn:x:${string}`
+```
+
+One deterministic exception: a pattern containing bounded repetition (`{8}`, `{2,4}` — anything matching `{<digit>`) opts out of all type-level treatment and infers as the base `string`. Bounded quantifiers are the type-level worst case twice over (inference expands `[0-9a-f]{8}` into 16⁸ branches; even the syntax parser drowns on the patterns they produce), so the rule is: the type system refines what it can prove cheaply, and runtime ajv enforces every pattern in full either way. UUID-shaped schemas validate perfectly — they just type as `string`.
+
+## Dynamic schemas
+
+A schema only known as the wide `JsonSchema` type compiles to an honest `Validator<unknown>`:
+
+```typescript
+function fromManifest(schema: validate.JsonSchema) {
+	return validate.compile(schema) // Validator<unknown>; walker + ajv still enforce everything
 }
 ```
 
-Use `additionalProperties: true` only for intentional external/open-object projection boundaries, such as third-party API payloads where you validate and consume a subset of upstream fields.
+The wide overload accepts **only** provably wide types. A literal schema that fails the guards cannot silently fall through to it and launder itself into `Validator<unknown>` — the call errors with the guard's poison visible.
 
-## Recursive Schemas
+## Errors
 
-Recursive runtime schemas should use Draft 7 `$ref` and `definitions`.
+Sentinels, matchable through any wrap chain with [`@superbuilders/errors`](https://github.com/superbuilders/errors):
 
-`json-schema-to-ts` does not infer recursive schemas. For recursive data, write an explicit TypeScript domain type and expose a named parse function that validates with this library and returns `ValidationResult<YourType>`.
+- **`ErrSchemaCompilation`** — house-rule violation (with rule and schema path in the message) or ajv compile failure
+- **`ErrValidation`** — the error on every failed `parse`, with ajv's issues attached
+- **`ErrUnsupportedSchemaDialect`** — root `$schema` present and not draft-07
+- **`ErrUnsupportedSchemaTarget`** — Standard JSON Schema asked for a target other than `"draft-07"`
 
-## No Transforms
+```typescript
+const result = errors.trySync(() => validate.compile(schema))
+if (result.error) {
+	if (errors.is(result.error, validate.ErrSchemaCompilation)) {
+		// e.g. "house rule at #/properties/x: keyword 'format' is banned: ..."
+	}
+}
+```
 
-This library does not coerce, default, strip, or transform values.
+## Interop
 
-If validation succeeds, `data` is the original value narrowed to the schema type.
+Every validator implements Standard Schema v1 (`"~standard".validate`, with JSON-pointer paths unescaped into real keys) and Standard JSON Schema (`"~standard".jsonSchema.input/output`, draft-07 target only) — so it plugs directly into the AI SDK's structured output, tRPC, and anything else that speaks the standard, with `StandardSchemaV1.InferOutput` agreeing with `validate.Infer`.
+
+## Why not Zod
+
+The schema **is** the artifact. It travels as JSON (to model providers, into manifests, across services), it is diffable, and it has no host-language runtime semantics. A builder API produces values that only mean something to the library that built them; a draft-07 document means the same thing to ajv, an LLM, and a reader. This library keeps the document primary and derives everything else — the TypeScript type, the parser, the standard interfaces — from it.
+
+## License
+
+[0BSD](./LICENSE) © Bjorn Pagen

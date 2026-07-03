@@ -25,9 +25,7 @@ function buildValidator<TOutput>(schemaSource: JsonSchema): Validator<TOutput> {
 		if (compiled(value)) {
 			return { success: true, data: value }
 		}
-		const validationErrors = validationIssues(
-			compiled.errors === null ? undefined : compiled.errors
-		)
+		const validationErrors = validationIssues(compiled.errors === null ? undefined : compiled.errors)
 		return {
 			success: false,
 			error: errors.wrap(ErrValidation, formatIssues(validationErrors)),
