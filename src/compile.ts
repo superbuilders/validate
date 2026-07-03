@@ -1,12 +1,12 @@
 import type { JSONSchema as UpstreamJsonSchema } from "json-schema-to-ts"
 
-import { buildValidator } from "@superbuilders/validate/build-validator"
-import { assertDraft07SchemaDialect } from "@superbuilders/validate/draft07"
-import type { ValidateHouseJsonSchema } from "@superbuilders/validate/schemas/house-guards"
-import type { InferDraft07 } from "@superbuilders/validate/schemas/infer-draft07"
-import type { ValidateRegexPatterns } from "@superbuilders/validate/schemas/regex-patterns"
-import type { JsonSchema } from "@superbuilders/validate/types/json-schema"
-import type { Validator } from "@superbuilders/validate/types/validation-result"
+import { buildValidator } from "#build-validator.ts"
+import { assertDraft07SchemaDialect } from "#draft07.ts"
+import type { ValidateHouseJsonSchema } from "#schemas/house-guards.ts"
+import type { InferDraft07 } from "#schemas/infer-draft07.ts"
+import type { ValidateRegexPatterns } from "#schemas/regex-patterns.ts"
+import type { JsonSchema } from "#types/json-schema.ts"
+import type { Validator } from "#types/validation-result.ts"
 
 function compile<const TSchema extends UpstreamJsonSchema>(
 	schemaSource: TSchema &

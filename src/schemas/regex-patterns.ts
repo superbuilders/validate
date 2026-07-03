@@ -1,6 +1,6 @@
 import type * as arkregex from "arkregex"
 
-import type { JsonSchemaArray } from "@superbuilders/validate/schemas/schema-keywords"
+import type { JsonSchemaArray } from "#schemas/schema-keywords.ts"
 
 type ValidateRegexPatterns<T> = T extends string | number | boolean | null | undefined
 	? T

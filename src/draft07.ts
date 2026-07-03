@@ -4,8 +4,8 @@ import {
 	DRAFT_07_SCHEMA_URL,
 	ErrUnsupportedSchemaDialect,
 	ErrUnsupportedSchemaTarget
-} from "@superbuilders/validate/errors"
-import type { JsonSchema } from "@superbuilders/validate/types/json-schema"
+} from "#errors.ts"
+import type { JsonSchema } from "#types/json-schema.ts"
 
 function assertDraft07SchemaDialect(schemaSource: JsonSchema): void {
 	if (typeof schemaSource === "boolean") {

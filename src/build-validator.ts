@@ -1,12 +1,12 @@
 import type { StandardJSONSchemaV1, StandardSchemaV1 } from "@standard-schema/spec"
 import * as errors from "@superbuilders/errors"
 
-import { ajv } from "@superbuilders/validate/ajv-instance"
-import { assertDraft07Target, draft07Schema } from "@superbuilders/validate/draft07"
-import { ErrSchemaCompilation, ErrValidation } from "@superbuilders/validate/errors"
-import { formatIssues, issues, validationIssues } from "@superbuilders/validate/issue-format"
-import type { JsonSchema } from "@superbuilders/validate/types/json-schema"
-import type { ValidationResult, Validator } from "@superbuilders/validate/types/validation-result"
+import { ajv } from "#ajv-instance.ts"
+import { assertDraft07Target, draft07Schema } from "#draft07.ts"
+import { ErrSchemaCompilation, ErrValidation } from "#errors.ts"
+import { formatIssues, issues, validationIssues } from "#issue-format.ts"
+import type { JsonSchema } from "#types/json-schema.ts"
+import type { ValidationResult, Validator } from "#types/validation-result.ts"
 
 /** Generic core: `ajv.compile<TOutput>` yields a type GUARD, so
  * `compiled(value)` narrows `value` to `TOutput` and every result below

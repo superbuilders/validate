@@ -7,7 +7,7 @@ import type {
 	ObjectKeyword,
 	SchemaNodeKeys,
 	StringKeyword
-} from "@superbuilders/validate/schemas/schema-keywords"
+} from "#schemas/schema-keywords.ts"
 
 type RequireType<T> = T extends { type: unknown } ? T : T & { type: never }
 type RequireSpecificType<T, U extends string> = T extends { type: U } ? T : T & { type: never }

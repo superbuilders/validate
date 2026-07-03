@@ -1,22 +1,22 @@
-export { ajv } from "@superbuilders/validate/ajv-instance"
-export { buildValidator } from "@superbuilders/validate/build-validator"
-export { compile } from "@superbuilders/validate/compile"
+export { ajv } from "#ajv-instance.ts"
+export { buildValidator } from "#build-validator.ts"
+export { compile } from "#compile.ts"
 export {
 	assertDraft07SchemaDialect,
 	assertDraft07Target,
 	draft07Schema
-} from "@superbuilders/validate/draft07"
+} from "#draft07.ts"
 export {
 	DRAFT_07_SCHEMA_URL,
 	ErrSchemaCompilation,
 	ErrUnsupportedSchemaDialect,
 	ErrUnsupportedSchemaTarget,
 	ErrValidation
-} from "@superbuilders/validate/errors"
-export { formatIssues, issues, validationIssues } from "@superbuilders/validate/issue-format"
-export type { ValidateHouseJsonSchema } from "@superbuilders/validate/schemas/house-guards"
-export type { InferDraft07 } from "@superbuilders/validate/schemas/infer-draft07"
-export type { ValidateRegexPatterns } from "@superbuilders/validate/schemas/regex-patterns"
+} from "#errors.ts"
+export { formatIssues, issues, validationIssues } from "#issue-format.ts"
+export type { ValidateHouseJsonSchema } from "#schemas/house-guards.ts"
+export type { InferDraft07 } from "#schemas/infer-draft07.ts"
+export type { ValidateRegexPatterns } from "#schemas/regex-patterns.ts"
 export type {
 	ArrayKeyword,
 	JsonSchemaArray,
@@ -24,6 +24,6 @@ export type {
 	ObjectKeyword,
 	SchemaNodeKeys,
 	StringKeyword
-} from "@superbuilders/validate/schemas/schema-keywords"
-export type { JsonSchema } from "@superbuilders/validate/types/json-schema"
-export type { Infer, ValidationResult, Validator } from "@superbuilders/validate/types/validation-result"
+} from "#schemas/schema-keywords.ts"
+export type { JsonSchema } from "#types/json-schema.ts"
+export type { Infer, ValidationResult, Validator } from "#types/validation-result.ts"
