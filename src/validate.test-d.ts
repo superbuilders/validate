@@ -144,12 +144,18 @@ type _metricsUrnCalIsString = Assert<Equal<Infer<typeof metricsUrnCal>, string>>
 // @ts-expect-error object schemas must declare additionalProperties
 compile({ type: "object", properties: { id: { type: "string" } } })
 
-// @ts-expect-error additionalProperties must be a boolean, not a schema
+const typedMap = compile({ type: "object", additionalProperties: { type: "string" } })
+type _typedMapIsRecord = Assert<Equal<Infer<typeof typedMap>, Record<string, string>>>
+
+// @ts-expect-error schema-form additionalProperties next to properties is banned
 compile({
 	type: "object",
 	additionalProperties: { type: "string" },
 	properties: { id: { type: "string" } }
 })
+
+// @ts-expect-error typed-map value schemas are still guard-checked
+compile({ type: "object", additionalProperties: { type: "string", format: "email" } })
 
 // @ts-expect-error $id is banned
 compile({ $id: "https://example.com/x", type: "string" })
@@ -169,8 +175,14 @@ compile({ type: "string", default: "x" })
 // @ts-expect-error patternProperties is banned
 compile({ type: "object", additionalProperties: false, patternProperties: {} })
 
-// @ts-expect-error inline type unions are banned
-compile({ type: ["string", "null"] })
+const nullableString = compile({ type: ["string", "null"] })
+type _nullablePairInfers = Assert<Equal<Infer<typeof nullableString>, string | null>>
+
+// @ts-expect-error inline type unions other than [T, "null"] are banned
+compile({ type: ["string", "number"] })
+
+// @ts-expect-error ["null", "null"] is not a nullable pair
+compile({ type: ["null", "null"] })
 
 // @ts-expect-error tuple items are banned
 compile({ type: "array", items: [{ type: "string" }, { type: "number" }] })
@@ -236,9 +248,11 @@ export type {
 	_boundedQuantifierFallsBackToString,
 	_discriminatedUnion,
 	_metricsUrnCalIsString,
+	_nullablePairInfers,
 	_patternTemplate,
 	_rootRefParentIsUnknownAtCycle,
 	_treeRoot,
+	_typedMapIsRecord,
 	_userShape,
 	_uuidCalIsString,
 	_wideIsUnknown

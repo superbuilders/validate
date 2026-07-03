@@ -48,11 +48,12 @@ Object schemas declare intent explicitly, in canonical key order:
 type < additionalProperties < required < properties
 ```
 
-- `additionalProperties` is **mandatory** on object schemas and **boolean only** — `false` unless the boundary is deliberately open. (The schema form corrupts json-schema-to-ts inference; implicit openness hides the decision.)
+- `additionalProperties` is **mandatory** on object schemas — `false` unless the boundary is deliberately open. It is boolean, with one exception: a node with **no** `properties` may use the schema form as a typed map (`{ type: "object", additionalProperties: { type: "string" } }` infers `Record<string, string>`). The schema form next to `properties` stays banned — that combination corrupts json-schema-to-ts inference.
 - `required` may list only keys declared in `properties`, without duplicates.
 - Typed keywords require their type: `pattern`/`minLength` ⇒ `type: "string"`, `minimum` ⇒ numeric, `items` ⇒ `"array"`, `properties` ⇒ `"object"`, and `const`/`enum` require an explicit `type`.
 - `oneOf` is reserved for **discriminated unions**: every branch a closed object schema sharing one const-tagged discriminator, first in both `required` and `properties`. Use `anyOf` for other unions.
-- **Banned outright**: `$id`, `$defs` (use `definitions`), `nullable`, `format` (use `pattern`), `default`, `patternProperties`, `additionalItems`, `dependencies`, tuple `items`, inline `type` arrays, unknown keywords, non-root `$schema`/`definitions`.
+- Nullable values use the draft-07 pair `type: ["string", "null"]` — the one inline `type` array admitted (it is also what OpenAI-style constrained decoding emits). Any other inline union is banned; spell it as `anyOf`.
+- **Banned outright**: `$id`, `$defs` (use `definitions`), `nullable`, `format` (use `pattern`), `default`, `patternProperties`, `additionalItems`, `dependencies`, tuple `items`, non-nullable inline `type` arrays, unknown keywords, non-root `$schema`/`definitions`.
 
 ## Recursion
 

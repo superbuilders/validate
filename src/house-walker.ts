@@ -102,12 +102,36 @@ function checkRootOnlyKeywords(node: Record<string, unknown>, path: string): voi
 	}
 }
 
+/**
+ * The single type name a node validates when non-null: the plain `type`
+ * string, or the first element of the nullable pair `[T, "null"]` — the one
+ * inline type array the house dialect admits.
+ */
+function effectiveType(node: Record<string, unknown>): string | undefined {
+	const type = node.type
+	if (typeof type === "string") {
+		return type
+	}
+	if (Array.isArray(type) && typeof type[0] === "string") {
+		return type[0]
+	}
+	return undefined
+}
+
 function checkTypeKeyword(node: Record<string, unknown>, path: string): void {
 	if (node.type === undefined) {
 		return
 	}
 	if (Array.isArray(node.type)) {
-		throw houseError(path, "inline type unions are banned; use anyOf of single-type schemas")
+		const isNullablePair =
+			node.type.length === 2 && typeof node.type[0] === "string" && node.type[0] !== "null" && node.type[1] === "null"
+		if (!isNullablePair) {
+			throw houseError(
+				path,
+				'inline type unions are banned except the nullable pair [T, "null"]; use anyOf of single-type schemas'
+			)
+		}
+		return
 	}
 	if (typeof node.type !== "string") {
 		throw houseError(path, "'type' must be a string")
@@ -115,17 +139,18 @@ function checkTypeKeyword(node: Record<string, unknown>, path: string): void {
 }
 
 function checkTypedKeywordCoherence(node: Record<string, unknown>, keys: string[], path: string): void {
+	const type = effectiveType(node)
 	for (const key of keys) {
-		if (STRING_KEYWORDS.has(key) && node.type !== "string") {
+		if (STRING_KEYWORDS.has(key) && type !== "string") {
 			throw houseError(path, `'${key}' requires type 'string'`)
 		}
-		if (NUMBER_KEYWORDS.has(key) && node.type !== "number" && node.type !== "integer") {
+		if (NUMBER_KEYWORDS.has(key) && type !== "number" && type !== "integer") {
 			throw houseError(path, `'${key}' requires type 'number' or 'integer'`)
 		}
-		if (ARRAY_KEYWORDS.has(key) && node.type !== "array") {
+		if (ARRAY_KEYWORDS.has(key) && type !== "array") {
 			throw houseError(path, `'${key}' requires type 'array'`)
 		}
-		if (OBJECT_KEYWORDS.has(key) && node.type !== "object") {
+		if (OBJECT_KEYWORDS.has(key) && type !== "object") {
 			throw houseError(path, `'${key}' requires type 'object'`)
 		}
 	}
@@ -189,7 +214,7 @@ function checkRequiredKeys(node: Record<string, unknown>, path: string): void {
 }
 
 function checkObjectShape(node: Record<string, unknown>, keys: string[], path: string): void {
-	if (node.type !== "object") {
+	if (effectiveType(node) !== "object") {
 		return
 	}
 	if (!Object.hasOwn(node, "additionalProperties")) {
@@ -198,8 +223,11 @@ function checkObjectShape(node: Record<string, unknown>, keys: string[], path: s
 			"object schemas must declare 'additionalProperties' explicitly (false unless the boundary is deliberately open)"
 		)
 	}
-	if (typeof node.additionalProperties !== "boolean") {
-		throw houseError(path, "'additionalProperties' must be a boolean; the schema form corrupts type inference")
+	if (typeof node.additionalProperties !== "boolean" && Object.hasOwn(node, "properties")) {
+		throw houseError(
+			path,
+			"'additionalProperties' next to 'properties' must be a boolean; the schema form there corrupts type inference (typed maps drop 'properties')"
+		)
 	}
 	checkKeyOrder(keys, path)
 	checkRequiredKeys(node, path)
@@ -293,7 +321,7 @@ function recurse(node: Record<string, unknown>, root: Record<string, unknown>, p
 			walkNode(child, root, `${path}/definitions/${key}`)
 		}
 	}
-	for (const keyword of ["items", "propertyNames", "contains", "not", "if", "then", "else"]) {
+	for (const keyword of ["items", "additionalProperties", "propertyNames", "contains", "not", "if", "then", "else"]) {
 		const child = node[keyword]
 		if (child !== undefined) {
 			if (keyword === "items" && Array.isArray(child)) {

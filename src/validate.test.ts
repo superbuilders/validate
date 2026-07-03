@@ -57,6 +57,29 @@ describe("compile and parse", () => {
 		assert.strictEqual(second.parse("a").success, true)
 	})
 
+	it("validates nullable pairs, including nullable objects", () => {
+		const nullableString = validate.compile({ type: ["string", "null"] })
+		assert.strictEqual(nullableString.parse("x").success, true)
+		assert.strictEqual(nullableString.parse(null).success, true)
+		assert.strictEqual(nullableString.parse(1).success, false)
+
+		const nullableObject = validate.compile({
+			type: ["object", "null"],
+			additionalProperties: false,
+			required: ["id"],
+			properties: { id: { type: "string" } }
+		})
+		assert.strictEqual(nullableObject.parse(null).success, true)
+		assert.strictEqual(nullableObject.parse({ id: "x" }).success, true)
+		assert.strictEqual(nullableObject.parse({ id: 1 }).success, false)
+	})
+
+	it("validates typed maps via schema-form additionalProperties", () => {
+		const map = validate.compile({ type: "object", additionalProperties: { type: "string" } })
+		assert.strictEqual(map.parse({ a: "x", b: "y" }).success, true)
+		assert.strictEqual(map.parse({ a: 1 }).success, false)
+	})
+
 	it("compiles patterns in unicode mode", () => {
 		const letters = validate.compile({ type: "string", pattern: "^\\p{L}+$" })
 		assert.strictEqual(letters.parse("héllo").success, true)
@@ -175,7 +198,7 @@ describe("house walker", () => {
 			name: "unknown keywords are banned",
 			schema: rawSchema(`{"type":"string","frobnicate":true}`)
 		},
-		{ name: "inline type unions are banned", schema: { type: ["string", "null"] } },
+		{ name: "inline type unions beyond [T, 'null'] are banned", schema: { type: ["string", "number"] } },
 		{
 			name: "tuple items are banned",
 			schema: { type: "array", items: [{ type: "string" }] }
@@ -185,11 +208,18 @@ describe("house walker", () => {
 			schema: { type: "object", properties: { id: { type: "string" } } }
 		},
 		{
-			name: "schema-form additionalProperties is banned",
+			name: "schema-form additionalProperties next to properties is banned",
 			schema: {
 				type: "object",
 				additionalProperties: { type: "string" },
 				properties: { id: { type: "string" } }
+			}
+		},
+		{
+			name: "typed-map value schemas are still walked",
+			schema: {
+				type: "object",
+				additionalProperties: { type: "string", format: "email" }
 			}
 		},
 		{

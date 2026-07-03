@@ -22,17 +22,34 @@ import type { IsWideSchema } from "#schemas/wide.ts"
 type NoUnknownSchemaKeywords<T> =
 	Exclude<keyof T, SchemaNodeKeys> extends never ? unknown : Record<Exclude<keyof T, SchemaNodeKeys>, never>
 
-type NoInlineTypeUnion<T> = T extends { type: readonly unknown[] } ? { type: never } : unknown
+/**
+ * The only inline type array admitted is the nullable pair `[T, "null"]` —
+ * the draft-07 convention primer's law (and OpenAI-style constrained
+ * decoding) uses for nullable properties. Every other union spells itself
+ * as anyOf of single-type schemas.
+ */
+type NoInlineTypeUnion<T> = T extends { type: readonly unknown[] }
+	? T extends { type: readonly [infer S, "null"] }
+		? S extends "null"
+			? { type: never }
+			: S extends string
+				? unknown
+				: { type: never }
+		: { type: never }
+	: unknown
 type NoTupleItems<T> = T extends { items: readonly unknown[] } ? { items: never } : unknown
 
 /**
- * Object schemas must declare `additionalProperties` explicitly, and only
- * the boolean form is admitted: json-schema-to-ts corrupts the inferred type
- * when a schema-form `additionalProperties` coexists with `properties`, and
- * an implicit (absent) `additionalProperties` silently means "open" — the
- * house law demands the openness decision be visible at the boundary.
+ * Object schemas must declare `additionalProperties` explicitly — an implicit
+ * (absent) `additionalProperties` silently means "open", and the house law
+ * demands the openness decision be visible at the boundary. The value is
+ * boolean, with one exception: a node with no `properties` may use the
+ * schema form (`additionalProperties: <schema>`) as a typed map, which
+ * json-schema-to-ts infers soundly as `Record<string, T>`. The schema form
+ * next to `properties` stays banned — that combination corrupts the
+ * inferred type.
  */
-type RequireAdditionalProperties<T> = T extends { type: "object" }
+type RequireAdditionalProperties<T> = T extends { type: "object" } | { type: readonly ["object", "null"] }
 	? T extends { additionalProperties: unknown }
 		? unknown
 		: { additionalProperties: boolean }
@@ -40,7 +57,9 @@ type RequireAdditionalProperties<T> = T extends { type: "object" }
 type BooleanAdditionalProperties<T> = T extends { additionalProperties: infer AP }
 	? AP extends boolean
 		? unknown
-		: { additionalProperties: boolean }
+		: T extends { properties: unknown }
+			? { additionalProperties: boolean }
+			: unknown
 	: unknown
 
 type RequireTypeForConst<T> = T extends { const: unknown }
@@ -55,7 +74,11 @@ type RequireTypeForEnum<T> = T extends { enum: unknown }
 	: unknown
 
 type RequireTypeForKeywords<T, Keys extends string, U extends string> =
-	Extract<keyof T, Keys> extends never ? unknown : T extends { type: U } ? unknown : { type: U }
+	Extract<keyof T, Keys> extends never
+		? unknown
+		: T extends { type: U } | { type: readonly [U, "null"] }
+			? unknown
+			: { type: U }
 
 type RequiredKeys<T> = T extends { required: readonly (infer R)[] } ? R : never
 type PropertyKeys<T> = T extends { properties: infer P } ? keyof P : never
@@ -81,7 +104,11 @@ type ValidateChildren<T> = {
 			? ValidateHouseJsonSchema<T[K]>
 			: K extends "oneOf" | "anyOf" | "allOf"
 				? ValidateSchemaArray<T[K]>
-				: unknown
+				: K extends "additionalProperties"
+					? T[K] extends boolean
+						? unknown
+						: ValidateHouseJsonSchema<T[K]>
+					: unknown
 }
 
 type ValidateHouseObject<T> = NoUnknownSchemaKeywords<T> &
