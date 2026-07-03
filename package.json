@@ -1,6 +1,6 @@
 {
 	"name": "@superbuilders/validate",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "Max-strict JSON Schema draft-07 validation: one compile() entry, a runtime house-law walker, and recursive type inference over ajv",
 	"module": "dist/validate.js",
 	"main": "dist/validate.js",
@@ -9,7 +9,7 @@
 	"exports": {
 		".": {
 			"types": "./dist/validate.d.ts",
-			"import": "./dist/validate.js"
+			"default": "./dist/validate.js"
 		}
 	},
 	"files": [
