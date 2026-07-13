@@ -2,7 +2,7 @@ import type { Infer, JsonSchema } from "#validate.ts"
 import { compile } from "#validate.ts"
 
 /**
- * Typecheck-only probes: this file is part of `tsgo --noEmit` but excluded
+ * Typecheck-only probes: this file is part of `tsc --noEmit` but excluded
  * from the build and never executed. Every `Assert<Equal<...>>` pins an
  * inference contract; every `@ts-expect-error` pins a house guard.
  */
@@ -108,7 +108,7 @@ type _discriminatedUnion = Assert<
 
 /**
  * The caliper gate: primer's caliper package compiles this exact battery of
- * pattern schemas in one file, which blew tsgo's instantiation depth under
+ * pattern schemas in one file, which blew tsc's instantiation depth under
  * eager arkregex expansion and forced a buildValidator<T> escape hatch. The
  * bounded-quantifier fallback must keep all of them compiling — via plain
  * compile, with no explicit output type — or the escape hatch comes back.
